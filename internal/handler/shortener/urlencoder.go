@@ -9,15 +9,18 @@ import (
 	"time"
 )
 
+// UrlShortener - структура, представляющая собой сократитель URL, который хранит URL в текстовом файле
 type UrlShortener struct {
-	store string
+	store string // Путь к текстовому файлу, где хранятся пары короткий URL - длинный URL
 }
 
+// New создает новый экземпляр UrlShortener
 func New() *UrlShortener {
 	rand.Seed(time.Now().UnixNano()) // Инициализация генератора случайных чисел
 	return &UrlShortener{store: "/path/to/your/storage.txt"}
 }
 
+// generateRandomString генерирует случайную строку заданной длины
 func generateRandomString(length int) string {
 	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	b := make([]byte, length)
@@ -27,9 +30,10 @@ func generateRandomString(length int) string {
 	return string(b)
 }
 
+// Encode принимает длинный URL и возвращает короткий URL, сохраняя эту пару в файле
 func (us *UrlShortener) Encode(longUrl string) string {
 	shortUrl := generateRandomString(6)
-	// Проверяем на уникальность
+	// Проверяем на уникальность короткого URL
 	for us.loadFromStorage(shortUrl) != "" {
 		shortUrl = generateRandomString(6)
 	}
@@ -37,11 +41,13 @@ func (us *UrlShortener) Encode(longUrl string) string {
 	return shortUrl
 }
 
+// Decode принимает короткий URL и возвращает соответствующий длинный URL из файла
 func (us *UrlShortener) Decode(shortUrl string) (string, bool) {
 	longUrl := us.loadFromStorage(shortUrl)
 	return longUrl, longUrl != ""
 }
 
+// saveToStorage сохраняет пару короткий URL - длинный URL в файл
 func (us *UrlShortener) saveToStorage(shortUrl string, longUrl string) {
 	file, err := os.OpenFile(us.store, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
@@ -54,6 +60,7 @@ func (us *UrlShortener) saveToStorage(shortUrl string, longUrl string) {
 	}
 }
 
+// loadFromStorage загружает длинный URL из файла по заданному короткому URL
 func (us *UrlShortener) loadFromStorage(shortUrl string) string {
 	file, err := os.Open(us.store)
 	if err != nil {
