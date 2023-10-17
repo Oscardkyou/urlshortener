@@ -1,3 +1,5 @@
 module GoUrlShotener
 
-go 1.21.1
+go 1.16
+
+require github.com/lib/pq v1.10.9 // indirect
