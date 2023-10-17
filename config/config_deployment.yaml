@@ -1,0 +1,7 @@
+
+deployment:
+  name: GoUrlShortener-deployment
+  replicas: 2
+  container:
+    name: GoUrlShortener-container
+    image: gourlshortener:latest

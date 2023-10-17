@@ -1,13 +1,25 @@
-package main
+
+package shortenpkg
 
 import (
-	"net/http"
-
-	"GoUrlShotener/internal/shotener"
+    "database/sql"
+    "net/http"
+    "log"
+    _ "github.com/lib/pq"
+    "GoUrlShortener/internal/shortener"
 )
 
+var db *sql.DB
+
 func main() {
-	http.HandleFunc("/url", shotener.SaveURLHandler)
-	http.HandleFunc("/", shotener.RedirectHandler)
-	http.ListenAndServe(":8080", nil)
+    var err error
+    db, err = sql.Open("postgres", "user=username password=password dbname=mydb sslmode=disable")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    http.HandleFunc("/api/shorten", shortener.ShortenHandler)
+    http.HandleFunc("/api/resolve", shortener.ResolveHandler)
+
+    log.Fatal(http.ListenAndServe(":8080", nil))
 }

@@ -1,4 +1,4 @@
-package shotener
+package shortenpkg
 
 import (
 	"bufio"

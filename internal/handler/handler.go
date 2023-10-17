@@ -1,7 +1,7 @@
-package shotener
+package handler
 
 import (
-	"GoUrlShotener/internal/store"
+	"GoUrlShortener/internal/store"
 	"encoding/json"
 	"net/http"
 )
@@ -18,23 +18,16 @@ func SaveURLHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	alias := data["alias"]
-	if alias == "" {
-		alias = GenerateAlias() // Ensure this function is implemented elsewhere
+	shortKey := data["shortKey"]
+	if shortKey == "" {
+		shortKey = GenerateShortURL() // Ensure this function is implemented elsewhere
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{"shortened": "http://localhost:8080/" + alias})
+	json.NewEncoder(w).Encode(map[string]string{"shortened": "{{.BaseURL}}" + shortKey})
 }
 
-func RedirectHandler(w http.ResponseWriter, r *http.Request) {
-	alias := r.URL.Path[1:]
 
-	url, ok := store.Get(alias)
-	if !ok {
-		http.Error(w, "не найдено", http.StatusNotFound)
-		return
-	}
 
 	http.Redirect(w, r, url, http.StatusFound)
 }
