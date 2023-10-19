@@ -1,8 +1,8 @@
 package main
 
 import (
-    "GoUrlShortener_final\shortener\shortener.go"
-	// Импортируем необходимые пакеты
+    "GoUrlShortener_final\internal\pkg\shortener"
+		// Импортируем необходимые пакеты
 	"database/sql" // Пакет для работы с SQL базами данных
 	"log"          // Пакет для логирования
 	"net/http"     // Пакет для работы с HTTP сервером и клиентом
@@ -10,6 +10,7 @@ import (
 
 	_ "github.com/lib/pq" // Драйвер для PostgreSQL. Используется ниже при вызове sql.Open()
 )
+
 
 // Глобальная переменная для подключения к базе данных
 var db *sql.DB
