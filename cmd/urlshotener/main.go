@@ -3,10 +3,12 @@ package main
 import (
 	"log"
 	"net/http"
-	"urlshortener/api/apishorten" // было urlshortener/api/shortenpkg
+	apishorten "urlshortener/api"
 	"urlshortener/shortener"
 	"urlshortener/storage"
 )
+
+// произвел правильные импорты наконецто )))
 
 func main() {
 	memoryStorage := storage.NewMemoryStorage()
