@@ -1,5 +1,5 @@
 // api/shortener.go
-package shortenpkg
+package apishorten // было shortenpkg
 
 import (
 	"net/http"

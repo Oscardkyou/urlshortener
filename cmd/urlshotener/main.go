@@ -3,18 +3,22 @@ package main
 import (
 	"log"
 	"net/http"
-	"urlshortener/api/shortenpkg"
-	// убедитесь, что путь к пакету верный
-	// "urlshortener/shortener" // если вам потребуется этот импорт
+	"urlshortener/api/apishorten" // было urlshortener/api/shortenpkg
+	"urlshortener/shortener"
+	"urlshortener/storage"
 )
 
 func main() {
-	// Так как обработчики теперь находятся в пакете shortenpkg, нет необходимости создавать экземпляр MemoryStorage
-	// и shortenerService в этом файле.
+	memoryStorage := storage.NewMemoryStorage()
+	shortenerService := shortener.NewShortenerService(memoryStorage)
 
-	// Обработчики URL
-	http.HandleFunc("/api/shorten", shortenpkg.ShortenHandler)
-	http.HandleFunc("/api/resolve", shortenpkg.ResolveHandler)
+	// передаем shortenerService в обработчики
+	http.HandleFunc("/api/shorten", func(w http.ResponseWriter, r *http.Request) {
+		apishorten.SaveURLHandler(shortenerService, w, r)
+	})
+	http.HandleFunc("/api/resolve", func(w http.ResponseWriter, r *http.Request) {
+		apishorten.ResolveHandler(shortenerService, w, r)
+	})
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
