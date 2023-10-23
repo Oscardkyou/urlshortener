@@ -8,11 +8,11 @@ import (
 	"urlshortener/storage"
 )
 
-// произвел правильные импорты наконецто )))
-
 func main() {
-	memoryStorage := storage.NewMemoryStorage()
-	shortenerService := shortener.NewShortenerService(memoryStorage)
+	var store storage.StorageInterface
+	store = storage.NewMemoryStorage()
+
+	shortenerService := shortener.NewShortenerService(store)
 
 	// передаем shortenerService в обработчики
 	http.HandleFunc("/api/shorten", func(w http.ResponseWriter, r *http.Request) {
