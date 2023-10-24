@@ -3,22 +3,27 @@ package main
 import (
 	"log"
 	"net/http"
-	apishorten "urlshortener/api"
+	"os"
+	"urlshortener/api"
 	"urlshortener/shortener"
 	"urlshortener/storage"
 )
 
 func main() {
+	// Настройка порта через переменную окружения. По умолчанию 8080.
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
 	store := storage.NewMemoryStorage()
 	shortenerService := shortener.NewShortenerService(store)
+	mux := api.NewRouter(shortenerService)
 
-	// передаем shortenerService в обработчики
-	http.HandleFunc("/api/shorten", func(w http.ResponseWriter, r *http.Request) {
-		apishorten.SaveURLHandler(shortenerService, w, r)
-	})
-	http.HandleFunc("/api/resolve", func(w http.ResponseWriter, r *http.Request) {
-		apishorten.ResolveHandler(shortenerService, w, r)
-	})
+	log.Printf("Starting server on :%s...", port)
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	err := http.ListenAndServe(":"+port, mux)
+	if err != nil {
+		log.Fatalf("Server failed to start: %v", err)
+	}
 }
