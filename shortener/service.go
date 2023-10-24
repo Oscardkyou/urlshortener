@@ -1,4 +1,3 @@
-// shortener/service.go
 package shortener
 
 import (
@@ -9,10 +8,10 @@ import (
 )
 
 type ShortenerService struct {
-	store *storage.MemoryStorage
+	store storage.StorageInterface
 }
 
-func NewShortenerService(store *storage.MemoryStorage) *ShortenerService {
+func NewShortenerService(store storage.StorageInterface) *ShortenerService {
 	return &ShortenerService{store: store}
 }
 
@@ -26,7 +25,7 @@ func (s *ShortenerService) Shorten(longURL string) (string, error) {
 }
 
 func (s *ShortenerService) Expand(shortURL string) (string, error) {
-	return s.store.Load(shortURL)
+	return s.store.Resolve(shortURL)
 }
 
 func generateShortKey(url string) string {

@@ -9,9 +9,7 @@ import (
 )
 
 func main() {
-	var store storage.StorageInterface
-	store = storage.NewMemoryStorage()
-
+	store := storage.NewMemoryStorage()
 	shortenerService := shortener.NewShortenerService(store)
 
 	// передаем shortenerService в обработчики
