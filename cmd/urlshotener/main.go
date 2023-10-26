@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"urlshortener/api"
+	"urlshortener/api" // уберем псевдоним "router"
 	"urlshortener/shortener"
 	"urlshortener/storage"
 )
@@ -18,7 +18,7 @@ func main() {
 
 	store := storage.NewMemoryStorage()
 	shortenerService := shortener.NewShortenerService(store)
-	mux := api.NewRouter(shortenerService)
+	mux := api.NewRouter(shortenerService) // Используем "api" здесь
 
 	log.Printf("Starting server on :%s...", port)
 
