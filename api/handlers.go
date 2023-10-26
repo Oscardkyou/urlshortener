@@ -37,7 +37,6 @@ func SaveURLHandler(s *shortener.ShortenerService, w http.ResponseWriter, r *htt
 
 	shortURL, err := s.Shorten(longURL)
 	if err != nil {
-		// Здесь можно добавить дополнительную обработку ошибок
 		http.Error(w, "Ошибка при создании короткого URL", http.StatusInternalServerError)
 		return
 	}
@@ -56,7 +55,6 @@ func ResolveHandler(s *shortener.ShortenerService, w http.ResponseWriter, r *htt
 
 	longURL, err := s.Expand(shortKey)
 	if err != nil {
-		// Здесь можно добавить дополнительную обработку ошибок
 		http.Error(w, "Ошибка при расшифровке короткого URL", http.StatusInternalServerError)
 		return
 	}
@@ -64,17 +62,4 @@ func ResolveHandler(s *shortener.ShortenerService, w http.ResponseWriter, r *htt
 	w.Header().Set("Content-Type", "application/json")
 	response := ResolveResponse{LongURL: longURL}
 	json.NewEncoder(w).Encode(response)
-}
-
-func NewRouter(svc *shortener.ShortenerService) *http.ServeMux {
-	mux := http.NewServeMux()
-
-	mux.HandleFunc("/api/shorten", func(w http.ResponseWriter, r *http.Request) {
-		SaveURLHandler(svc, w, r)
-	})
-	mux.HandleFunc("/api/resolve", func(w http.ResponseWriter, r *http.Request) {
-		ResolveHandler(svc, w, r)
-	})
-
-	return mux
 }
