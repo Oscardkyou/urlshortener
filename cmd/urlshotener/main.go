@@ -1,29 +1,38 @@
 package main
 
 import (
-	"log"
 	"net/http"
-	"os"
-	"urlshortener/api" // уберем псевдоним "router"
+	"urlshortener/api"
+	"urlshortener/config" // добавьте этот импорт
 	"urlshortener/shortener"
 	"urlshortener/storage"
+
+	"go.uber.org/zap"
 )
 
 func main() {
-	// Настройка порта через переменную окружения. По умолчанию 8080.
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
+	// Инициализация логгера zap
+	logger, err := zap.NewProduction()
+	if err != nil {
+		panic(err)
+	}
+	defer logger.Sync()
+
+	// Загрузка конфигурации
+	cfg, err := config.Load()
+	if err != nil {
+		logger.Fatal("Failed to load configuration", zap.Error(err))
 	}
 
 	store := storage.NewMemoryStorage()
 	shortenerService := shortener.NewShortenerService(store)
-	mux := api.NewRouter(shortenerService) // Используем "api" здесь
+	mux := api.NewRouter(shortenerService)
 
-	log.Printf("Starting server on :%s...", port)
+	// Используем logger от zap вместо стандартного log
+	logger.Info("Starting server", zap.String("port", cfg.Port))
 
-	err := http.ListenAndServe(":"+port, mux)
+	err = http.ListenAndServe(":"+cfg.Port, mux)
 	if err != nil {
-		log.Fatalf("Server failed to start: %v", err)
+		logger.Fatal("Server failed to start", zap.Error(err))
 	}
 }
