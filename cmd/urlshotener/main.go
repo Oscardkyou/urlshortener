@@ -1,29 +1,59 @@
 package main
 
 import (
-	"log"
+	"flag"
 	"net/http"
-	"os"
-	"urlshortener/api" // уберем псевдоним "router"
+	"urlshortener/api"
+	"urlshortener/config"
 	"urlshortener/shortener"
 	"urlshortener/storage"
+
+	"go.uber.org/zap"
 )
 
 func main() {
-	// Настройка порта через переменную окружения. По умолчанию 8080.
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
+	// Инициализация логгера zap
+	logger, err := zap.NewProduction()
+	if err != nil {
+		panic(err)
+	}
+	defer logger.Sync()
+
+	// Используйте флаги для конфигурации
+	var port string
+	var storageType string
+
+	flag.StringVar(&port, "port", "8080", "port to run the server on")
+	flag.StringVar(&storageType, "storage", "memory", "type of storage ('memory' or 'db')")
+	flag.Parse()
+
+	if port == "" { // Если порт не указан, загрузите его из конфигурации
+		cfg, err := config.Load()
+		if err != nil {
+			logger.Fatal("Failed to load configuration", zap.Error(err))
+		}
+		port = cfg.Port
 	}
 
-	store := storage.NewMemoryStorage()
+	var store storage.StorageInterface
+	switch storageType {
+	case "memory":
+		store = storage.NewMemoryStorage()
+	case "db":
+		// Например, если у вас есть реализация DBStorage
+		// store = storage.NewDBStorage()
+		logger.Fatal("DB storage is not implemented yet")
+	default:
+		logger.Fatal("Unsupported storage type", zap.String("storageType", storageType))
+	}
+
 	shortenerService := shortener.NewShortenerService(store)
-	mux := api.NewRouter(shortenerService) // Используем "api" здесь
+	mux := api.NewRouter(shortenerService)
 
-	log.Printf("Starting server on :%s...", port)
+	logger.Info("Starting server", zap.String("port", port))
 
-	err := http.ListenAndServe(":"+port, mux)
+	err = http.ListenAndServe(":"+port, mux)
 	if err != nil {
-		log.Fatalf("Server failed to start: %v", err)
+		logger.Fatal("Server failed to start", zap.Error(err))
 	}
 }
