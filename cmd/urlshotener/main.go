@@ -1,9 +1,10 @@
 package main
 
 import (
+	"flag"
 	"net/http"
 	"urlshortener/api"
-	"urlshortener/config" // добавьте этот импорт
+	"urlshortener/config"
 	"urlshortener/shortener"
 	"urlshortener/storage"
 
@@ -18,20 +19,40 @@ func main() {
 	}
 	defer logger.Sync()
 
-	// Загрузка конфигурации
-	cfg, err := config.Load()
-	if err != nil {
-		logger.Fatal("Failed to load configuration", zap.Error(err))
+	// Используйте флаги для конфигурации
+	var port string
+	var storageType string
+
+	flag.StringVar(&port, "port", "8080", "port to run the server on")
+	flag.StringVar(&storageType, "storage", "memory", "type of storage ('memory' or 'db')")
+	flag.Parse()
+
+	if port == "" { // Если порт не указан, загрузите его из конфигурации
+		cfg, err := config.Load()
+		if err != nil {
+			logger.Fatal("Failed to load configuration", zap.Error(err))
+		}
+		port = cfg.Port
 	}
 
-	store := storage.NewMemoryStorage()
+	var store storage.StorageInterface
+	switch storageType {
+	case "memory":
+		store = storage.NewMemoryStorage()
+	case "db":
+		// Например, если у вас есть реализация DBStorage
+		// store = storage.NewDBStorage()
+		logger.Fatal("DB storage is not implemented yet")
+	default:
+		logger.Fatal("Unsupported storage type", zap.String("storageType", storageType))
+	}
+
 	shortenerService := shortener.NewShortenerService(store)
 	mux := api.NewRouter(shortenerService)
 
-	// Используем logger от zap вместо стандартного log
-	logger.Info("Starting server", zap.String("port", cfg.Port))
+	logger.Info("Starting server", zap.String("port", port))
 
-	err = http.ListenAndServe(":"+cfg.Port, mux)
+	err = http.ListenAndServe(":"+port, mux)
 	if err != nil {
 		logger.Fatal("Server failed to start", zap.Error(err))
 	}
