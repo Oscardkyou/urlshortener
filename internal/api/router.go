@@ -1,23 +1,69 @@
 package api
 
 import (
+	"encoding/json"
 	"net/http"
 	"urlshortener/shortener"
 )
 
-// NewRouter создает и возвращает новый HTTP роутер для API сокращения URL.
-func NewRouter(svc *shortener.ShortenerService) *http.ServeMux {
-	mux := http.NewServeMux()
+type URLHandler struct {
+	Service *shortener.ShortenerService
+}
 
-	// Обработчик для сокращения URL.
-	mux.HandleFunc("/api/shorten", func(w http.ResponseWriter, r *http.Request) {
-		SaveURLHandler(svc, w, r)
-	})
+type Response struct {
+	ShortURL string `json:"short_url"`
+}
 
-	// Обработчик для восстановления оригинального URL.
-	mux.HandleFunc("/api/resolve", func(w http.ResponseWriter, r *http.Request) {
-		ResolveHandler(svc, w, r) // Исправлено имя функции
-	})
+type ResolveResponse struct {
+	LongURL string `json:"long_url"`
+}
 
-	return mux
+func (h *URLHandler) SaveURL(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Метод не поддерживается", http.StatusMethodNotAllowed)
+		return
+	}
+
+	defer r.Body.Close()
+
+	var data map[string]string
+
+	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+		http.Error(w, "Неверный JSON", http.StatusBadRequest)
+		return
+	}
+
+	longURL, ok := data["url"]
+	if !ok {
+		http.Error(w, "URL не предоставлен", http.StatusBadRequest)
+		return
+	}
+
+	shortURL, err := h.Service.Shorten(longURL)
+	if err != nil {
+		http.Error(w, "Ошибка при создании короткого URL", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	response := Response{ShortURL: shortURL}
+	json.NewEncoder(w).Encode(response)
+}
+
+func (h *URLHandler) Resolve(w http.ResponseWriter, r *http.Request) {
+	shortKey := r.FormValue("key")
+	if shortKey == "" {
+		http.Error(w, "Ключ не предоставлен", http.StatusBadRequest)
+		return
+	}
+
+	longURL, err := h.Service.Expand(shortKey)
+	if err != nil {
+		http.Error(w, "Ошибка при расшифровке короткого URL", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	response := ResolveResponse{LongURL: longURL}
+	json.NewEncoder(w).Encode(response)
 }

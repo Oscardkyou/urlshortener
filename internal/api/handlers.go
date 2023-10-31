@@ -6,6 +6,10 @@ import (
 	"urlshortener/shortener"
 )
 
+type URLHandler struct {
+	Service *shortener.ShortenerService
+}
+
 type Response struct {
 	ShortURL string `json:"short_url"`
 }
@@ -14,7 +18,7 @@ type ResolveResponse struct {
 	LongURL string `json:"long_url"`
 }
 
-func SaveURLHandler(s *shortener.ShortenerService, w http.ResponseWriter, r *http.Request) {
+func (h *URLHandler) SaveURL(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Метод не поддерживается", http.StatusMethodNotAllowed)
 		return
@@ -35,7 +39,7 @@ func SaveURLHandler(s *shortener.ShortenerService, w http.ResponseWriter, r *htt
 		return
 	}
 
-	shortURL, err := s.Shorten(longURL)
+	shortURL, err := h.Service.Shorten(longURL)
 	if err != nil {
 		http.Error(w, "Ошибка при создании короткого URL", http.StatusInternalServerError)
 		return
@@ -46,14 +50,14 @@ func SaveURLHandler(s *shortener.ShortenerService, w http.ResponseWriter, r *htt
 	json.NewEncoder(w).Encode(response)
 }
 
-func ResolveHandler(s *shortener.ShortenerService, w http.ResponseWriter, r *http.Request) {
+func (h *URLHandler) Resolve(w http.ResponseWriter, r *http.Request) {
 	shortKey := r.FormValue("key")
 	if shortKey == "" {
 		http.Error(w, "Ключ не предоставлен", http.StatusBadRequest)
 		return
 	}
 
-	longURL, err := s.Expand(shortKey)
+	longURL, err := h.Service.Expand(shortKey)
 	if err != nil {
 		http.Error(w, "Ошибка при расшифровке короткого URL", http.StatusInternalServerError)
 		return
