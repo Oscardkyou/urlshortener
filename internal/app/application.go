@@ -6,21 +6,39 @@ import (
 	"urlshortener/internal/server"
 )
 
-type App struct {
-	server *server.Server
+// Интерфейсы для зависимостей
+type ConfigLoader interface {
+	Load() *config.Config
 }
 
-func (a *App) Initialize() {
-	// Load configuration
-	cfg := config.Load()
+type Logger interface {
+	Info(msg string, keysAndValues ...interface{})
+	Fatal(msg string, keysAndValues ...interface{})
+}
 
-	// Initialize logger
-	log := logger.Initialize()
+type Server interface {
+	Start()
+}
 
-	// Initialize server
-	a.server = server.Initialize(cfg, log)
+type App struct {
+	server Server
+}
+
+// Инициализация App с зависимостями в виде интерфейсов
+func NewApp(cfgLoader ConfigLoader, log Logger) *App {
+	cfg := cfgLoader.Load()
+	srv := server.Initialize(cfg, log)
+	return &App{server: srv}
 }
 
 func (a *App) Run() {
 	a.server.Start()
+}
+
+// Теперь в main.go вы создаете реальные экземпляры и передаете их в App
+func main() {
+	cfgLoader := config.NewConfigLoader() // Фабрика для ConfigLoader
+	log := logger.NewLogger()             // Фабрика для Logger
+	app := NewApp(cfgLoader, log)         // DI
+	app.Run()
 }

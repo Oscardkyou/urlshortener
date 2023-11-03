@@ -6,28 +6,30 @@ import (
 	"urlshortener/internal/server"
 )
 
+// App инкапсулирует сервер и его зависимости
 type App struct {
-	server *server.Server
+	server server.ServerInterface // Используйте интерфейс вместо конкретного типа
 }
 
-func (a *App) Initialize() {
-	// Load configuration
-	cfg := config.Load()
+// Initialize настраивает приложение с необходимыми компонентами
+func (a *App) Initialize(cfgLoader config.ConfigLoader, log logger.LoggerInterface) {
+	cfg := cfgLoader.Load() // Загрузка конфигурации с использованием переданного загрузчика
 
-	// Initialize logger
-	log := logger.Initialize(cfg)
-
-	// Initialize server
-	a.server = server.Initialize(cfg, log)
+	// Инициализация сервера с использованием загруженной конфигурации и логгера
+	a.server = server.NewServer(cfg, log)
 }
 
+// Run запускает приложение
 func (a *App) Run() {
 	a.server.Start()
 }
 
 func main() {
+	// Инициализация зависимостей
+	cfgLoader := config.NewConfigLoader() // Предполагается, что это возвращает реализацию ConfigLoader
+	log := logger.NewLogger()             // Предполагается, что это возвращает реализацию LoggerInterface
+
 	app := &App{}
-	app.Initialize()
-	app.Run()
-	// app.Server()
+	app.Initialize(cfgLoader, log) // Внедрение зависимостей в приложение
+	app.Run()                      // Запуск приложения
 }
