@@ -25,9 +25,9 @@ type App struct {
 }
 
 // Инициализация App с зависимостями в виде интерфейсов
-func NewApp(cfgLoader ConfigLoader, log Logger) *App {
+func NewApp(cfgLoader ConfigLoader, log logger.LoggerInterface) *App {
 	cfg := cfgLoader.Load()
-	srv := server.Initialize(cfg, log)
+	srv := server.NewServer(cfg, log) // Используйте NewServer, а не Initialize
 	return &App{server: srv}
 }
 

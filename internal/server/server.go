@@ -8,6 +8,7 @@ import (
 	"urlshortener/internal/shortener"
 	"urlshortener/internal/storage"
 
+	"github.com/go-chi/chi"
 	"go.uber.org/zap"
 )
 
@@ -23,32 +24,22 @@ type Server struct {
 	Logger logger.LoggerInterface
 }
 
-// NewServer - функция для создания нового сервера.
 func NewServer(cfg *config.Config, log logger.LoggerInterface) ServerInterface {
-	var store storage.StorageInterface
-	switch cfg.StorageType {
-	case "memory":
-		store = storage.NewMemoryStorage()
-	case "db":
-		// TODO: реализация хранения в БД
-		log.Fatal("DB storage is not implemented yet")
-	default:
-		log.Fatal("Unsupported storage type", zap.String("storageType", cfg.StorageType))
-	}
+	// ... [оставьте предыдущий код]
 
-	shortenerService := shortener.NewShortenerService(store)
+	shortenerService := shortener.NewShortenerService(storage.NewMemoryStorage())
 	mux := handler.NewRouter(shortenerService)
 
 	return &Server{
 		Port:   cfg.Port,
-		Router: mux,
+		Router: chi.Mux,
 		Logger: log,
 	}
 }
 
 // Start - метод для запуска сервера.
 func (s *Server) Start() {
-	s.Logger.Info("Starting server", zap.String("port", s.Port))
+	s.Logger.Info("Starting server on port " + s.Port)
 	if err := http.ListenAndServe(":"+s.Port, s.Router); err != nil {
 		s.Logger.Fatal("Server failed to start", zap.Error(err))
 	}
