@@ -1,8 +1,6 @@
 package main
 
 import (
-	"flag"
-<<<<<<< HEAD
 	"urlshortener/internal/config"
 	"urlshortener/internal/logger"
 	"urlshortener/internal/server"
@@ -31,3 +29,5 @@ func main() {
 	app := &App{}
 	app.Initialize()
 	app.Run()
+	// app.Server()
+}

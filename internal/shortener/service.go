@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"hash/crc32"
-	"urlshortener/storage"
+	"urlshortener/internal/storage"
 )
 
 type ShortenerService struct {

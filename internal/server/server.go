@@ -1,12 +1,12 @@
-
 package server
 
 import (
+	"api/"
 	"net/http"
-	"urlshortener/api"
-	"urlshortener/config"
-	"urlshortener/shortener"
-	"urlshortener/storage"
+	"urlshortener/internal/config"
+	"urlshortener/internal/shortener"
+	"urlshortener/internal/storage"
+
 	"go.uber.org/zap"
 )
 
