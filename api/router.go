@@ -1,23 +1,21 @@
-package api
+package router
 
 import (
-	"net/http"
-	"urlshortener/shortener"
+	"urlshortener/internal/handler"
+	"urlshortener/internal/shortener"
+
+	"github.com/go-chi/chi"
 )
 
-// NewRouter создает и возвращает новый HTTP роутер для API сокращения URL.
-func NewRouter(svc *shortener.ShortenerService) *http.ServeMux {
-	mux := http.NewServeMux()
-
-	// Обработчик для сокращения URL.
-	mux.HandleFunc("/api/shorten", func(w http.ResponseWriter, r *http.Request) {
-		SaveURLHandler(svc, w, r)
+func NewRouter(shortenerService *shortener.ShortenerService) *chi.Mux {
+	r := chi.NewRouter()
+	r.Get("/home", handler.HomePageHandler)
+	r.Get("/{shortURL}", handler.RedirectHandler)
+	r.Route("/api", func(r chi.Router) {
+		r.Post("/shorten", handler.SaveURLHandler(shortenerService))
+		r.Get("/resolve", handler.ResolveHandler(shortenerService))
 	})
-
-	// Обработчик для восстановления оригинального URL.
-	mux.HandleFunc("/api/resolve", func(w http.ResponseWriter, r *http.Request) {
-		ResolveHandler(svc, w, r) // Исправлено имя функции
-	})
-
-	return mux
+	r.Get("/health", handler.HealthCheckHandler)
+	r.Get("/ping", handler.PingHandler)
+	return r
 }
